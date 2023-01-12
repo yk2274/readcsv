@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Read CSV file</title>
+</head>
+<body>
+    <h2>Upload your CSV file to display in HTML table</h2>
+
+    <div>
+        <input type="file" accept=".csv" id="upload-file">
+    </div>
+    <div>
+        <table  id="table"></table>
+    </div>
+    <div>
+        <table id="table2">
+            <tr>
+                <td>Category</td>
+                <td>Value</td>            
+            </tr>
+            <tr id="alpha">
+                <td>Alpha</td>
+                <!-- <td></td> -->
+            </tr>
+            <tr id="beta">
+                <td>Beta</td>
+                <!-- <td ></td> -->
+            </tr>
+            <tr id="charlie">
+                <td>Charlie</td>
+                <!-- <td ></td> -->
+            </tr>
+        </table>
+    </div>
+
+    <script>
+        window.onload = () => {
+            var reader = new FileReader(),
+                picker = document.getElementById("upload-file"),
+                table = document.getElementById("table"),
+                alpha = document.getElementById("alpha"),
+                beta = document.getElementById("beta"),
+                charlie = document.getElementById("charlie");
+
+            //read csv on file pick 
+            picker.onchange = () => reader.readAsText(picker.files[0]);
+
+            //generate html table
+            reader.onloadend = () => {
+                let csv = reader.result;
+                
+                //split into rows 
+                
+                let rows = csv.split("\r\n");
+                let lines = csv.split(/(?:\r\n|\n)+/).filter(function(el) {return el.length != 0});
+                let headers = lines.splice(0, 1)[0].split(",");
+                let valuesRegExp = /(?:\"([^\"]*(?:\"\"[^\"]*)*)\")|([^\",]+)/g;
+                let elements = [];
+
+                for (let i = 0; i < lines.length; i++) {
+                    let element = {};
+                    let j = 0;
+
+                    //table headers
+                    let tr1 = table.insertRow();
+                    if (i == 0) {
+                        for (let x = 0; x < headers.length; x++) {
+                            let td = tr1.insertCell();
+                            td.innerHTML = headers[x];
+                        }    
+                    }
+
+                    //table content
+                    let tr2 = table.insertRow();
+                    while (matches = valuesRegExp.exec(lines[i])) {
+                        var value = matches[1] || matches[2];
+                        value = value.replace(/\"\"/g, "\"");
+                        
+                        element[headers[j]] = value;
+                        
+                        let td = tr2.insertCell();
+                        td.innerHTML = value;
+                        j++;
+                    }
+
+                    elements.push(element);
+                }
+
+                console.log(elements);
+                
+                //value for alpha A5 + A20
+                const A5 = parseInt(elements[4].Value);
+                const A20 = parseInt(elements[19].Value);
+                let td1 = alpha.insertCell();
+                td1.innerHTML = A5 + A20;
+
+                //value for beta A15 / A7
+                const A15 = parseInt(elements[14].Value);
+                const A7 = parseInt(elements[6].Value);
+                let td2 = beta.insertCell();
+                td2.innerHTML = A15 / A7;
+
+                //value for charlie A13 * A12
+                const A13 = parseInt(elements[12].Value);
+                const A12 = parseInt(elements[11].Value);
+                let td3 = charlie.insertCell();
+                td3.innerHTML = A13 * A12;
+            };
+        }
+    </script>
+</body>
+</html>
